@@ -20,10 +20,10 @@ const defaults = {
       headline: 'The video connection was lost, please confirm you are ' +
                 'connected to the Internet'
     },
-    // '3': {
-    //   type: 'MEDIA_ERR_DECODE',
-    //   headline: 'The video is bad or in a format that cannot be played on your browser'
-    // },
+    '3': {
+      type: 'MEDIA_ERR_DECODE',
+      headline: 'The video is bad or in a format that cannot be played on your browser'
+    },
     '4': {
       type: 'MEDIA_ERR_SRC_NOT_SUPPORTED',
       headline: 'This video is either unavailable or not supported in this browser'
@@ -37,14 +37,14 @@ const defaults = {
       type: 'MEDIA_ERR_UNKNOWN',
       headline: 'An unanticipated problem was encountered, check back soon and try again'
     },
-    // '-1': {
-    //   type: 'PLAYER_ERR_NO_SRC',
-    //   headline: 'No video has been loaded'
-    // },
-    // '-2': {
-    //   type: 'PLAYER_ERR_TIMEOUT',
-    //   headline: 'Could not download the video'
-    // }
+    '-1': {
+      type: 'PLAYER_ERR_NO_SRC',
+      headline: 'No video has been loaded'
+    },
+    '-2': {
+      type: 'PLAYER_ERR_TIMEOUT',
+      headline: 'Could not download the video'
+    }
   }
 };
 
