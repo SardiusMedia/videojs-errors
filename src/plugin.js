@@ -42,6 +42,7 @@ const defaults = {
             headline: 'No video has been loaded'
         },
         '-2': {
+            hideMessage: true,
             type: 'PLAYER_ERR_TIMEOUT',
             headline: 'Could not download the video'
         }
@@ -68,10 +69,10 @@ const initPlugin = function(player, options) {
                 return;
             }
 
-            // player.error({
-            //     code: -2,
-            //     type: 'PLAYER_ERR_TIMEOUT'
-            // });
+            player.error({
+                code: -2,
+                type: 'PLAYER_ERR_TIMEOUT'
+            });
         }, options.timeout);
 
         // clear out any existing player timeout
@@ -184,7 +185,7 @@ const initPlugin = function(player, options) {
 
         display = player.getChild('errorDisplay');
 
-        if (error.headline) {
+        if (typeof error.hideMessage == "undefined" || error.hideMessage === false) {
 	        // The code snippet below is to make sure we dispose any child closeButtons before
 	        // making the display closeable
 	        if (display.getChild('closeButton')) {
