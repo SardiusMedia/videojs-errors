@@ -167,25 +167,27 @@ const initPlugin = function(player, options) {
             return;
         }
 
-        error = videojs.mergeOptions(error, options.errors[error.code || 0]);
-
-        if (error.message) {
-            details = `<div class="vjs-errors-details">
-            				${player.localize('Technical details')}:
-            				<div class="vjs-errors-message">${player.localize(error.message)}</div>
-            			</div>`;
-        }
-
-        if (error.code === 4 && !FlashObj.isSupported()) {
-            const flashMessage = player.localize(' * If you are using an older browser' +
-                ' please try upgrading or installing Flash.');
-
-            details += `<span class="vjs-errors-flashmessage">${flashMessage}</span>`;
-        }
-
-        display = player.getChild('errorDisplay');
-
         if (typeof error.hideMessage == "undefined" || error.hideMessage === false) {
+
+        	error = videojs.mergeOptions(error, options.errors[error.code || 0]);
+
+	        if (error.message) {
+	            details = `<div class="vjs-errors-details">
+	            				${player.localize('Technical details')}:
+	            				<div class="vjs-errors-message">${player.localize(error.message)}</div>
+	            			</div>`;
+	        }
+
+	        if (error.code === 4 && !FlashObj.isSupported()) {
+	            const flashMessage = player.localize(' * If you are using an older browser' +
+	                ' please try upgrading or installing Flash.');
+
+	            details += `<span class="vjs-errors-flashmessage">${flashMessage}</span>`;
+	        }
+
+	        display = player.getChild('errorDisplay');
+
+
 	        // The code snippet below is to make sure we dispose any child closeButtons before
 	        // making the display closeable
 	        if (display.getChild('closeButton')) {
@@ -223,6 +225,8 @@ const initPlugin = function(player, options) {
 	        videojs.on(okButton, 'click', function() {
 	            display.close();
 	        });
+	    } else {
+	    	return
 	    }
     };
 
