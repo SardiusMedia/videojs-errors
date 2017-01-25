@@ -69,10 +69,11 @@ const initPlugin = function(player, options) {
                 return;
             }
 
-            player.error({
-                code: -2,
-                type: 'PLAYER_ERR_TIMEOUT'
-            });
+            // player.error({
+            //     code: -2,
+            //     type: 'PLAYER_ERR_TIMEOUT'
+            // });
+
         }, options.timeout);
 
         // clear out any existing player timeout
@@ -103,10 +104,10 @@ const initPlugin = function(player, options) {
                 let tech = player.$('.vjs-tech');
 
                 if (tech && tech.type === 'application/x-shockwave-flash' && !tech.vjs_getProperty) {
-                    player.error({
-                        code: -2,
-                        type: 'PLAYER_ERR_TIMEOUT'
-                    });
+                    // player.error({
+                    //     code: -2,
+                    //     type: 'PLAYER_ERR_TIMEOUT'
+                    // });
                     return;
                 }
 
