@@ -6,46 +6,46 @@ const FlashObj = videojs.getComponent('Flash');
 
 // Default options for the plugin.
 const defaults = {
-  header: '',
-  code: '',
-  message: '',
-  timeout: 45 * 1000,
-  errors: {
-    '1': {
-      type: 'MEDIA_ERR_ABORTED',
-      headline: 'The video download was canceled'
-    },
-    '2': {
-      type: 'MEDIA_ERR_NETWORK',
-      headline: 'The video connection was lost, please confirm you are ' +
+    header: '',
+    code: '',
+    message: '',
+    timeout: 45 * 1000,
+    errors: {
+        '1': {
+            type: 'MEDIA_ERR_ABORTED',
+            headline: 'The video download was canceled'
+        },
+        '2': {
+            type: 'MEDIA_ERR_NETWORK',
+            headline: 'The video connection was lost, please confirm you are ' +
                 'connected to the Internet'
-    },
-    '3': {
-      type: 'MEDIA_ERR_DECODE',
-      headline: 'The video is bad or in a format that cannot be played on your browser'
-    },
-    '4': {
-      type: 'MEDIA_ERR_SRC_NOT_SUPPORTED',
-      headline: 'This video is either unavailable or not supported in this browser'
-    },
-    '5': {
-      type: 'MEDIA_ERR_ENCRYPTED',
-      headline: 'The video you are trying to watch is encrypted and we do not know how ' +
+        },
+        '3': {
+            type: 'MEDIA_ERR_DECODE',
+            headline: 'The video is bad or in a format that cannot be played on your browser'
+        },
+        '4': {
+            type: 'MEDIA_ERR_SRC_NOT_SUPPORTED',
+            headline: 'This video is either unavailable or not supported in this browser'
+        },
+        '5': {
+            type: 'MEDIA_ERR_ENCRYPTED',
+            headline: 'The video you are trying to watch is encrypted and we do not know how ' +
                 'to decrypt it'
-    },
-    'unknown': {
-      type: 'MEDIA_ERR_UNKNOWN',
-      headline: 'An unanticipated problem was encountered, check back soon and try again'
-    },
-    '-1': {
-      type: 'PLAYER_ERR_NO_SRC',
-      headline: 'No video has been loaded'
-    },
-    '-2': {
-      type: 'PLAYER_ERR_TIMEOUT',
-      headline: 'Could not download the video'
+        },
+        'unknown': {
+            type: 'MEDIA_ERR_UNKNOWN',
+            headline: 'An unanticipated problem was encountered, check back soon and try again'
+        },
+        '-1': {
+            type: 'PLAYER_ERR_NO_SRC',
+            headline: 'No video has been loaded'
+        },
+        '-2': {
+            type: 'PLAYER_ERR_TIMEOUT',
+            headline: 'Could not download the video'
+        }
     }
-  }
 };
 
 /**
@@ -54,195 +54,209 @@ const defaults = {
  * timeframe.
  */
 const initPlugin = function(player, options) {
-  let monitor;
-  let listeners = [];
+    let monitor;
+    let listeners = [];
 
-  // clears the previous monitor timeout and sets up a new one
-  const resetMonitor = function() {
-    window.clearTimeout(monitor);
-    monitor = window.setTimeout(function() {
-      // player already has an error
-      // or is not playing under normal conditions
-      if (player.error() || player.paused() || player.ended()) {
-        return;
-      }
+    // clears the previous monitor timeout and sets up a new one
+    const resetMonitor = function() {
+        window.clearTimeout(monitor);
+        monitor = window.setTimeout(function() {
+            // player already has an error
+            // or is not playing under normal conditions
 
-      player.error({
-        code: -2,
-        type: 'PLAYER_ERR_TIMEOUT'
-      });
-    }, options.timeout);
+            if (player.error() || player.paused() || player.ended()) {
+                return;
+            }
 
-    // clear out any existing player timeout
-    // playback has recovered
-    if (player.error() && player.error().code === -2) {
-      player.error(null);
-    }
-  };
+            // player.error({
+            //     code: -2,
+            //     type: 'PLAYER_ERR_TIMEOUT'
+            // });
+        }, options.timeout);
 
-  // clear any previously registered listeners
-  const cleanup = function() {
-    let listener;
-
-    while (listeners.length) {
-      listener = listeners.shift();
-      player.off(listener[0], listener[1]);
-    }
-    window.clearTimeout(monitor);
-  };
-
-  // creates and tracks a player listener if the player looks alive
-  const healthcheck = function(type, fn) {
-    let check = function() {
-      // if there's an error do not reset the monitor and
-      // clear the error unless time is progressing
-      if (!player.error()) {
-        // error if using Flash and its API is unavailable
-        let tech = player.$('.vjs-tech');
-
-        if (tech &&
-            tech.type === 'application/x-shockwave-flash' &&
-            !tech.vjs_getProperty) {
-          player.error({
-            code: -2,
-            type: 'PLAYER_ERR_TIMEOUT'
-          });
-          return;
+        // clear out any existing player timeout
+        // playback has recovered
+        if (player.error() && player.error().code === -2) {
+            player.error(null);
         }
-
-        // playback isn't expected if the player is paused
-        if (player.paused()) {
-          return resetMonitor();
-        }
-        // playback isn't expected once the video has ended
-        if (player.ended()) {
-          return resetMonitor();
-        }
-      }
-
-      fn.call(this);
     };
 
-    player.on(type, check);
-    listeners.push([type, check]);
-  };
+    // clear any previously registered listeners
+    const cleanup = function() {
+        let listener;
 
-  const onPlayStartMonitor = function() {
-    let lastTime = 0;
+        while (listeners.length) {
+            listener = listeners.shift();
+            player.off(listener[0], listener[1]);
+        }
+        window.clearTimeout(monitor);
+    };
 
-    cleanup();
+    // creates and tracks a player listener if the player looks alive
+    const healthcheck = function(type, fn) {
+        let check = function() {
+            // if there's an error do not reset the monitor and
+            // clear the error unless time is progressing
+            if (!player.error()) {
+                // error if using Flash and its API is unavailable
+                let tech = player.$('.vjs-tech');
 
-    // if no playback is detected for long enough, trigger a timeout error
-    resetMonitor();
-    healthcheck(['timeupdate', 'adtimeupdate'], function() {
-      let currentTime = player.currentTime();
+                if (tech && tech.type === 'application/x-shockwave-flash' && !tech.vjs_getProperty) {
+                    player.error({
+                        code: -2,
+                        type: 'PLAYER_ERR_TIMEOUT'
+                    });
+                    return;
+                }
 
-      // playback is operating normally or has recovered
-      if (currentTime !== lastTime) {
-        lastTime = currentTime;
+                // playback isn't expected if the player is paused
+                if (player.paused()) {
+                    return resetMonitor();
+                }
+                // playback isn't expected once the video has ended
+                if (player.ended()) {
+                    return resetMonitor();
+                }
+            }
+
+            fn.call(this);
+        };
+
+        player.on(type, check);
+        listeners.push([type, check]);
+    };
+
+    const onPlayStartMonitor = function() {
+        let lastTime = 0;
+
+        cleanup();
+
+        // if no playback is detected for long enough, trigger a timeout error
         resetMonitor();
-      }
+        healthcheck(['timeupdate', 'adtimeupdate'], function() {
+            let currentTime = player.currentTime();
+
+            // playback is operating normally or has recovered
+            if (currentTime !== lastTime) {
+                lastTime = currentTime;
+                resetMonitor();
+            }
+        });
+        healthcheck('progress', resetMonitor);
+    };
+
+    const onPlayNoSource = function() {
+        if (!player.currentSrc()) {
+            player.error({
+                code: -1,
+                type: 'PLAYER_ERR_NO_SRC'
+            });
+        }
+    };
+
+    const onErrorHandler = function() {
+        let display;
+        let details = '';
+        let error = player.error();
+        let content = document.createElement('div');
+
+        // In the rare case when `error()` does not return an error object,
+        // defensively escape the handler function.
+        if (!error) {
+            return;
+        }
+
+        error = videojs.mergeOptions(error, options.errors[error.code || 0]);
+
+        if (error.message) {
+            details = `<div class="vjs-errors-details">
+            				${player.localize('Technical details')}:
+            				<div class="vjs-errors-message">${player.localize(error.message)}</div>
+            			</div>`;
+        }
+
+        if (error.code === 4 && !FlashObj.isSupported()) {
+            const flashMessage = player.localize(' * If you are using an older browser' +
+                ' please try upgrading or installing Flash.');
+
+            details += `<span class="vjs-errors-flashmessage">${flashMessage}</span>`;
+        }
+
+        display = player.getChild('errorDisplay');
+
+        if (error.headline) {
+	        // The code snippet below is to make sure we dispose any child closeButtons before
+	        // making the display closeable
+	        if (display.getChild('closeButton')) {
+	            display.removeChild('closeButton');
+	        }
+
+	        // Make the error display closeable, and we should get a close button
+	        display.closeable(true);
+
+	        content.className = 'vjs-errors-dialog';
+
+	        content.id = 'vjs-errors-dialog';
+
+	        content.innerHTML =
+	            `<div class="vjs-errors-content-container">
+	            	<h2 class="vjs-errors-headline">${this.localize(error.headline)}</h2>
+	            	<div><b>${this.localize('Error Code')}</b>: ${(error.type || error.code)}</div>
+	            	${details}
+	            </div>
+	            <div class="vjs-errors-ok-button-container">
+	            	<button class="vjs-errors-ok-button">${this.localize('OK')}</button>
+	            </div>`;
+
+	        display.fillWith(content);
+
+	        // Get the close button inside the error display
+	        display.contentEl().firstChild.appendChild(display.getChild('closeButton').el());
+
+	        if (player.width() <= 600 || player.height() <= 250) {
+	            display.addClass('vjs-xs');
+	        }
+
+	        let okButton = display.el().querySelector('.vjs-errors-ok-button');
+
+	        videojs.on(okButton, 'click', function() {
+	            display.close();
+	        });
+	    }
+    };
+
+    const onDisposeHandler = function() {
+        cleanup();
+
+        player.removeClass('vjs-errors');
+        player.off('play', onPlayStartMonitor);
+        player.off('play', onPlayNoSource);
+        player.off('dispose', onDisposeHandler);
+        player.off('error', onErrorHandler);
+    };
+
+    const reInitPlugin = function(newOptions) {
+        onDisposeHandler();
+        initPlugin(player, videojs.mergeOptions(defaults, newOptions));
+    };
+
+    player.on('play', onPlayStartMonitor);
+    player.on('play', onPlayNoSource);
+    player.on('dispose', onDisposeHandler);
+    player.on('error', onErrorHandler);
+
+    player.ready(() => {
+        player.addClass('vjs-errors');
     });
-    healthcheck('progress', resetMonitor);
-  };
 
-  const onPlayNoSource = function() {
-    if (!player.currentSrc()) {
-      player.error({
-        code: -1,
-        type: 'PLAYER_ERR_NO_SRC'
-      });
-    }
-  };
-
-  const onErrorHandler = function() {
-    let display;
-    let details = '';
-    let error = player.error();
-    let content = document.createElement('div');
-
-    // In the rare case when `error()` does not return an error object,
-    // defensively escape the handler function.
-    if (!error) {
-      return;
-    }
-    error = videojs.mergeOptions(error, options.errors[error.code || 0]);
-    if (error.message) {
-      details = `<div class="vjs-errors-details">${player.localize('Technical details')}
-        : <div class="vjs-errors-message">${player.localize(error.message)}</div>
-        </div>`;
-    }
-    if (error.code === 4 && !FlashObj.isSupported()) {
-      const flashMessage = player.localize(' * If you are using an older browser' +
-      ' please try upgrading or installing Flash.');
-
-      details += `<span class="vjs-errors-flashmessage">${flashMessage}</span>`;
-    }
-    display = player.getChild('errorDisplay');
-    // The code snippet below is to make sure we dispose any child closeButtons before
-    // making the display closeable
-    if (display.getChild('closeButton')) {
-      display.removeChild('closeButton');
-    }
-    // Make the error display closeable, and we should get a close button
-    display.closeable(true);
-    content.className = 'vjs-errors-dialog';
-    content.id = 'vjs-errors-dialog';
-    content.innerHTML =
-      `<div class="vjs-errors-content-container">
-        <h2 class="vjs-errors-headline">${this.localize(error.headline)}</h2>
-          <div><b>${this.localize('Error Code')}</b>: ${(error.type || error.code)}</div>
-          ${details}
-        </div>
-        <div class="vjs-errors-ok-button-container">
-          <button class="vjs-errors-ok-button">${this.localize('OK')}</button>
-        </div>`;
-    display.fillWith(content);
-    // Get the close button inside the error display
-    display.contentEl().firstChild.appendChild(display.getChild('closeButton').el());
-    if (player.width() <= 600 || player.height() <= 250) {
-      display.addClass('vjs-xs');
-    }
-
-    let okButton = display.el().querySelector('.vjs-errors-ok-button');
-
-    videojs.on(okButton, 'click', function() {
-      display.close();
-    });
-  };
-
-  const onDisposeHandler = function() {
-    cleanup();
-
-    player.removeClass('vjs-errors');
-    player.off('play', onPlayStartMonitor);
-    player.off('play', onPlayNoSource);
-    player.off('dispose', onDisposeHandler);
-    player.off('error', onErrorHandler);
-  };
-
-  const reInitPlugin = function(newOptions) {
-    onDisposeHandler();
-    initPlugin(player, videojs.mergeOptions(defaults, newOptions));
-  };
-
-  player.on('play', onPlayStartMonitor);
-  player.on('play', onPlayNoSource);
-  player.on('dispose', onDisposeHandler);
-  player.on('error', onErrorHandler);
-
-  player.ready(() => {
-    player.addClass('vjs-errors');
-  });
-
-  player.errors = reInitPlugin;
+    player.errors = reInitPlugin;
 };
 
 /**
  * Initialize the plugin. Waits until the player is ready to do anything.
  */
 const errors = function(options) {
-  initPlugin(this, videojs.mergeOptions(defaults, options));
+    initPlugin(this, videojs.mergeOptions(defaults, options));
 };
 
 // Register the plugin with video.js.
